@@ -18,6 +18,9 @@ static bin_t *bin_alloc(void) {
         return bin;
 }
 static void bin_free(bin_t *bin) {
+        if (bin == NULL) {
+                return;
+        }
         free(bin->item_indices);
         free(bin);
 }
@@ -127,6 +130,9 @@ chrom_t *rand_first_fit(const long long *item_sizes, size_t num_items,
         return chrom;
 }
 void chrom_free(chrom_t *chrom) {
+        if (chrom == NULL) {
+                return;
+        }
         for (size_t i=0; i<chrom->num_bins; i++) {
                 bin_free(chrom->bins[i]);
         }
