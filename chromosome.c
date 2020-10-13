@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <math.h>
 #include <assert.h>
+#ifdef DEBUG
+#include <stdio.h>
+#endif
 
 #define FITNESS_K       2
 
@@ -82,10 +85,20 @@ static void eval_fitness(chrom_t *chrom, int fitness_k) {
 static void fit(chrom_t *chrom, size_t index, long long value) {
         for (size_t i=0; i<chrom->num_bins; i++) {
                 if (chrom->bins[i]->fill + value <= chrom->bin_cap) {
+#ifdef DEBUG
+                        printf("adding to bin %zu:\n"
+                               "index: %zu\tsize: %lld\n",
+                               i, index, value);
+#endif
                         bin_add(chrom->bins[i], index, value);
                         return;
                 }
         }
+#ifdef DEBUG
+        printf("adding to new bin:\n"
+               "index: %zu\tsize: %lld\n",
+               index, value);
+#endif
         chrom_new_bin(chrom);
         bin_add(chrom->bins[chrom->num_bins - 1], index, value);
 }
@@ -95,9 +108,11 @@ static void first_fit(chrom_t *chrom, const long long *item_sizes,
         for (size_t loop = 0, i = start_pos, end = num_items;
              loop < 2;
              loop++, i = 0, end = start_pos) {
-                if (!is_item_used[i]) {
-                        fit(chrom, i, item_sizes[i]);
-                        is_item_used[i] = true;
+                for (; i < end; i++) {
+                        if (!is_item_used[i]) {
+                                fit(chrom, i, item_sizes[i]);
+                                is_item_used[i] = true;
+                        }
                 }
         }
 }
@@ -143,6 +158,12 @@ chrom_t *chrom_cx(const chrom_t *parent1, const chrom_t *parent2,
         size_t p2_start = rand() % (parent2->num_bins);
         size_t p2_count = rand() % (parent2->num_bins - p2_start) + 1;
         size_t p1_pos = rand() % (parent1->num_bins + 1);
+#ifdef DEBUG
+        printf("\nparent2 start: %zu\n"
+               "parent2 count: %zu\n"
+               "parent1 pos: %zu\n\n",
+               p2_start, p2_count, p1_pos);
+#endif
         chrom_t *child = chrom_alloc(parent1->bin_cap);
         bool *is_item_used = calloc(num_items, sizeof(*is_item_used));
         /* marking items from the chosen bins from parent2 as used */
@@ -160,6 +181,11 @@ chrom_t *chrom_cx(const chrom_t *parent1, const chrom_t *parent2,
                 for (; p1i < p1end; p1i++) {
                         if (!check4conflict(is_item_used,
                                             parent1->bins[p1i])) {
+#ifdef DEBUG
+                                printf("bin %zu in parent1 has no"
+                                       " conflicts; adding bin\n",
+                                       p1i);
+#endif
                                 chrom_add_bin(child,
                                               bin_copy(parent1->bins[p1i]));
                                 mark_used(is_item_used, parent1->bins[p1i]);
@@ -167,16 +193,24 @@ chrom_t *chrom_cx(const chrom_t *parent1, const chrom_t *parent2,
                 }
                 /* 2.) */
                 for (; p2i < p2end; p2i++) {
+#ifdef DEBUG
+                        printf("adding bin %zu from parent2\n", p2i);
+#endif
                         chrom_add_bin(child, bin_copy(parent2->bins[p2i]));
                 }
         }
         /* first-fit the items not in any bins in child */
         first_fit(child, item_sizes, is_item_used, num_items, 0);
         free(is_item_used);
+        eval_fitness(child, FITNESS_K);
+        return child;
 }
 void chrom_mutate(chrom_t *chrom, double mutation_rate,
                   const long long *item_sizes, size_t num_items) {
         assert((mutation_rate >= 0.0) && (mutation_rate <= 1.0));
+#ifdef DEBUG
+        printf("mutation_rate: %lf\n", mutation_rate);
+#endif
         if (mutation_rate == 0.0) {
                 return;
         }
@@ -187,7 +221,14 @@ void chrom_mutate(chrom_t *chrom, double mutation_rate,
         /* 'mutate' (delete) each bin with a probability specified by the
          * mutation rate */
         for (size_t i=0; i<chrom->num_bins; i++) {
+#ifndef DEBUG
                 if (rand() * (1 / (double)RAND_MAX) <= mutation_rate) {
+#else
+                double rand_mut = rand() * (1 / (double)RAND_MAX);
+                printf("randomly generated value: %lf\n", rand_mut);
+                if (rand_mut <= mutation_rate) {
+                        printf("deleting bin %zu\n", i);
+#endif
                         mark_unused(is_item_used, chrom->bins[i]);
                         chrom_del_bin(chrom, i);
                         i--; // have to account for bins shifting back
