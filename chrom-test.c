@@ -7,17 +7,17 @@
 #define MUT_RATE        (0.75)
 
 static void print_bin(const bin_t *bin,
-                      const long long *item_sizes, size_t num_items);
+                      const long double *item_sizes, size_t num_items);
 static void print_chrom(const chrom_t *chrom,
-                        const long long *item_sizes, size_t num_items);
+                        const long double *item_sizes, size_t num_items);
 
 int main(void) {
         srand(3);
-        long long *arr = malloc(ARR_SZ * sizeof(*arr));
+        long double *arr = malloc(ARR_SZ * sizeof(*arr));
         printf("test set:\n");
         for (size_t i=0; i<ARR_SZ; i++) {
                 arr[i] = rand() % (TEST_CAP / 2) + 1;
-                printf("%lld ", arr[i]);
+                printf("%Lf ", arr[i]);
         }
         putchar('\n');
         printf("rand\n");
@@ -58,21 +58,21 @@ int main(void) {
 }
 
 static void print_bin(const bin_t *bin,
-                      const long long *item_sizes, size_t num_items) {
-        printf("fill: %lld\n"
+                      const long double *item_sizes, size_t num_items) {
+        printf("fill: %Lf\n"
                "count: %zu\n"
                "items:\n",
                bin->fill, bin->count);
         for (size_t i=0; i<bin->count; i++) {
-                printf("index: %zu\tsize: %lld\n",
+                printf("index: %zu\tsize: %Lf\n",
                        bin->item_indices[i],
                        item_sizes[bin->item_indices[i]]);
         }
 }
 static void print_chrom(const chrom_t *chrom,
-                        const long long *item_sizes, size_t num_items) {
+                        const long double *item_sizes, size_t num_items) {
         printf("fitness: %lf\n"
-               "bin_cap: %zu\n"
+               "bin_cap: %Lf\n"
                "num_bins: %zu\n"
                "bins:\n",
                chrom->fitness, chrom->bin_cap, chrom->num_bins);

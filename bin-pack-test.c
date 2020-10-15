@@ -13,7 +13,7 @@
 #define FIT_K           2
 
 int main(void) {
-        long long *arr = malloc(ARR_SZ * sizeof(*arr));
+        long double *arr = malloc(ARR_SZ * sizeof(*arr));
         for (size_t i=0; i<ARR_SZ; i++) {
                 arr[i] = rand() % CAP + 1;
         }

@@ -7,7 +7,7 @@
 
 #if defined (DEBUG_BIN)
 static void print_bin(const bin_t *bin) {
-        printf("fill: %lld\n"
+        printf("fill: %Lf\n"
                "count: %zu\n"
                "item_indices:\n",
                bin->fill, bin->count);
@@ -18,7 +18,7 @@ static void print_bin(const bin_t *bin) {
 }
 static void print_chrom(const chrom_t *chrom) {
         printf("fitness: %lf\n"
-               "bin_cap: %zu\n"
+               "bin_cap: %Lf\n"
                "num_bins: %zu\n"
                "bins:\n",
                chrom->fitness, chrom->bin_cap, chrom->num_bins);
@@ -30,7 +30,7 @@ static void print_chrom(const chrom_t *chrom) {
 #endif
 
 static struct llarray *result_bin_alloc(const bin_t *bin,
-                                        const long long *item_sizes,
+                                        const long double *item_sizes,
                                         size_t num_items) {
         struct llarray *arr = malloc(offsetof(struct llarray, elems)
                                      + (bin->count * sizeof(*arr->elems)));
@@ -41,7 +41,7 @@ static struct llarray *result_bin_alloc(const bin_t *bin,
         return arr;
 }
 static result_t *result_alloc(const chrom_t *best_chrom,
-                              const long long *item_sizes, size_t num_items) {
+                              const long double *item_sizes, size_t num_items) {
         assert(best_chrom != NULL);
         result_t *res = malloc(offsetof(result_t, bins)
                                + (best_chrom->num_bins * sizeof(*res->bins)));
@@ -94,7 +94,7 @@ static const chrom_t *find_elite(const pop_t *pop) {
 }
 static pop_t *child_pop(const tourn_t *mating_pool, size_t population_size,
                         const chrom_t *elite_chrom,
-                        const long long *item_sizes, size_t num_items) {
+                        const long double *item_sizes, size_t num_items) {
         pop_t *child = pop_alloc(population_size);
         child->chroms[0] = chrom_copy(elite_chrom);
         for (size_t i=1; i<child->num_chroms; i++) {
@@ -107,7 +107,7 @@ static pop_t *child_pop(const tourn_t *mating_pool, size_t population_size,
         return child;
 }
 static void mutate_pop(pop_t *pop, double mutation_rate,
-                       const long long *item_sizes, size_t num_items) {
+                       const long double *item_sizes, size_t num_items) {
         /* starts at 1 because 0 contains the elite chromosome from
          * previous generations */
         for (size_t i=1; i<pop->num_chroms; i++) {

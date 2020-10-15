@@ -6,7 +6,7 @@
 
 typedef struct problem_set prob_set_t;
 struct problem_set {
-        const long long *item_sizes;
+        const long double *item_sizes;
         size_t num_items;
         size_t bin_capacity;
         size_t max_generations;
@@ -21,7 +21,7 @@ struct problem_set {
 
 struct llarray {
         size_t num_elems;
-        long long elems[];
+        long double elems[];
 };
 typedef struct result result_t;
 struct result {

@@ -18,7 +18,7 @@ static void print_bin(const bin_t *bin) {
 }
 static void print_chrom(const chrom_t *chrom) {
         printf("fitness: %lf\n"
-               "bin_cap: %zu\n"
+               "bin_cap: %Lf\n"
                "num_bins: %zu\n"
                "bins:\n",
                chrom->fitness, chrom->bin_cap, chrom->num_bins);
@@ -58,7 +58,7 @@ static bin_t *bin_copy(const bin_t *bin) {
                bin->count * sizeof(*copy->item_indices));
         return copy;
 }
-static void bin_add(bin_t *bin, size_t index, long long value) {
+static void bin_add(bin_t *bin, size_t index, long double value) {
         bin->fill += value;
         bin->item_indices = realloc(bin->item_indices,
                                     (bin->count + 1)
@@ -67,7 +67,7 @@ static void bin_add(bin_t *bin, size_t index, long long value) {
         bin->count++;
 }
 
-static chrom_t *chrom_alloc(size_t bin_cap) {
+static chrom_t *chrom_alloc(long double bin_cap) {
         chrom_t *chrom = malloc(sizeof(*chrom));
         *chrom = (chrom_t){.fitness = 0,
                            .bin_cap = bin_cap,
@@ -107,7 +107,7 @@ static void eval_fitness(chrom_t *chrom, int fitness_k) {
         }
 }
 
-static void fit(chrom_t *chrom, size_t index, long long value) {
+static void fit(chrom_t *chrom, size_t index, long double value) {
         for (size_t i=0; i<chrom->num_bins; i++) {
                 if (chrom->bins[i]->fill + value <= chrom->bin_cap) {
 #ifdef DEBUG
@@ -127,7 +127,7 @@ static void fit(chrom_t *chrom, size_t index, long long value) {
         chrom_new_bin(chrom);
         bin_add(chrom->bins[chrom->num_bins - 1], index, value);
 }
-static void first_fit(chrom_t *chrom, const long long *item_sizes,
+static void first_fit(chrom_t *chrom, const long double *item_sizes,
                       bool *is_item_used, size_t num_items,
                       size_t start_pos) {
         for (size_t loop = 0, i = start_pos, end = num_items;
@@ -141,8 +141,8 @@ static void first_fit(chrom_t *chrom, const long long *item_sizes,
                 }
         }
 }
-chrom_t *rand_first_fit(const long long *item_sizes, size_t num_items,
-                        size_t bin_cap) {
+chrom_t *rand_first_fit(const long double *item_sizes, size_t num_items,
+                        long double bin_cap) {
         chrom_t *chrom = chrom_alloc(bin_cap);
         bool *is_item_used = calloc(num_items, sizeof(*is_item_used));
         first_fit(chrom, item_sizes, is_item_used, num_items,
@@ -193,7 +193,7 @@ static void mark_unused(bool *is_item_used, const bin_t *bin) {
         }
 }
 chrom_t *chrom_cx(const chrom_t *parent1, const chrom_t *parent2,
-                  const long long *item_sizes, size_t num_items) {
+                  const long double *item_sizes, size_t num_items) {
 #ifdef DEBUG_CX
         printf("parent1:\n");
         print_chrom(parent1);
@@ -251,7 +251,7 @@ chrom_t *chrom_cx(const chrom_t *parent1, const chrom_t *parent2,
         return child;
 }
 void chrom_mutate(chrom_t *chrom, double mutation_rate,
-                  const long long *item_sizes, size_t num_items) {
+                  const long double *item_sizes, size_t num_items) {
         assert((mutation_rate >= 0.0) && (mutation_rate <= 1.0));
 #ifdef DEBUG
         printf("mutation_rate: %lf\n", mutation_rate);

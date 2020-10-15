@@ -10,8 +10,8 @@ struct population {
 };
 
 pop_t *pop_alloc(size_t pop_size);
-pop_t *pop_rand_init(size_t bin_capacity, size_t pop_size,
-                     const long long *item_sizes, size_t num_items);
+pop_t *pop_rand_init(long double bin_capacity, size_t pop_size,
+                     const long double *item_sizes, size_t num_items);
 void pop_free(pop_t *pop);
 
 #endif /* !POPULATION_H */

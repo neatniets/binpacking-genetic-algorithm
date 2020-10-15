@@ -17,13 +17,14 @@ int main(void) {
 static void falk_main_solve(void) {
         /* skip problem identifier */
         scanf(" %*s");
-        size_t bin_capacity, num_items, optimal_num_bins;
-        scanf(" %zu %zu %zu",
+        long double bin_capacity;
+        size_t num_items, optimal_num_bins;
+        scanf(" %Lf %zu %zu",
               &bin_capacity, &num_items, &optimal_num_bins);
-        long long *item_sizes = malloc(num_items
+        long double *item_sizes = malloc(num_items
                                        * sizeof(*item_sizes));
         for (size_t i=0; i<num_items; i++) {
-                scanf(" %lld", item_sizes+i);
+                scanf(" %Lf", item_sizes+i);
         }
         prob_set_t ps = {.item_sizes = item_sizes,
                          .num_items = num_items,

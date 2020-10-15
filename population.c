@@ -10,8 +10,8 @@ pop_t *pop_alloc(size_t pop_size) {
         memset(&pop->chroms, 0, pop->num_chroms * sizeof(*pop->chroms));
         return pop;
 }
-pop_t *pop_rand_init(size_t bin_capacity, size_t pop_size,
-                     const long long *item_sizes, size_t num_items) {
+pop_t *pop_rand_init(long double bin_capacity, size_t pop_size,
+                     const long double *item_sizes, size_t num_items) {
         pop_t *pop = pop_alloc(pop_size);
         for (size_t i=0; i<pop->num_chroms; i++) {
                 pop->chroms[i] = rand_first_fit(item_sizes, num_items,
