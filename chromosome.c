@@ -4,11 +4,33 @@
 #include <stdbool.h>
 #include <math.h>
 #include <assert.h>
-#ifdef DEBUG
+#if defined (DEBUG) || defined (DEBUG_CX)
 #include <stdio.h>
+static void print_bin(const bin_t *bin) {
+        printf("fill: %lld\n"
+               "count: %zu\n"
+               "item_indices:\n",
+               bin->fill, bin->count);
+        for (size_t i=0; i<bin->count; i++) {
+                printf("%zu ", bin->item_indices[i]);
+        }
+        putchar('\n');
+}
+static void print_chrom(const chrom_t *chrom) {
+        printf("fitness: %lf\n"
+               "bin_cap: %zu\n"
+               "num_bins: %zu\n"
+               "bins:\n",
+               chrom->fitness, chrom->bin_cap, chrom->num_bins);
+        for (size_t i=0; i<chrom->num_bins; i++) {
+                printf("bin %zu:\n", i);
+                print_bin(chrom->bins[i]);
+        }
+}
 #endif
 
 #define FITNESS_K       2
+
 
 static bin_t *bin_alloc(void) {
         bin_t *bin = malloc(sizeof(*bin));
@@ -142,10 +164,9 @@ void chrom_free(chrom_t *chrom) {
 
 chrom_t *chrom_copy(const chrom_t *chrom) {
         chrom_t *copy = chrom_alloc(chrom->bin_cap);
-        *copy = (chrom_t){.fitness = chrom->fitness,
-                          .num_bins = chrom->num_bins,
-                          .bins = malloc(chrom->num_bins
-                                         * sizeof(*copy->bins))};
+        copy->fitness = chrom->fitness;
+        copy->num_bins = chrom->num_bins;
+        copy->bins = malloc(chrom->num_bins * sizeof(*copy->bins));
         for (size_t i=0; i<copy->num_bins; i++) {
                 copy->bins[i] = bin_copy(chrom->bins[i]);
         }
@@ -173,10 +194,16 @@ static void mark_unused(bool *is_item_used, const bin_t *bin) {
 }
 chrom_t *chrom_cx(const chrom_t *parent1, const chrom_t *parent2,
                   const long long *item_sizes, size_t num_items) {
+#ifdef DEBUG_CX
+        printf("parent1:\n");
+        print_chrom(parent1);
+        printf("parent2:\n");
+        print_chrom(parent2);
+#endif
         size_t p2_start = rand() % (parent2->num_bins);
         size_t p2_count = rand() % (parent2->num_bins - p2_start) + 1;
         size_t p1_pos = rand() % (parent1->num_bins + 1);
-#ifdef DEBUG
+#ifdef DEBUG_CX
         printf("\nparent2 start: %zu\n"
                "parent2 count: %zu\n"
                "parent1 pos: %zu\n\n",
