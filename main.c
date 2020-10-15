@@ -1,20 +1,22 @@
 #include "bin-packing.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-const long long arr[] = {9, 8, 7, 6, 4, 3, 2, 1,
-                         1, 2, 3, 4, 6, 7, 8, 9,
-                         9, 8, 7, 6, 4, 3, 2, 1};
-#define ARR_SZ          (sizeof(arr)/sizeof(*arr))
-#define CAP             20
-#define MAX_GEN         100
-#define POP_SZ          ARR_SZ
+#define ARR_SZ          1000
+#define CAP             1000
+#define MAX_GEN         1000
+#define POP_SZ          100
 #define MP_SZ           POP_SZ
-#define MUT_RT          0.5
+#define MUT_RT          0.0
 #define TOURN_P         1.0
 #define TOURN_SZ        2
 #define FIT_K           2
 
 int main(void) {
+        long long *arr = malloc(ARR_SZ * sizeof(*arr));
+        for (size_t i=0; i<ARR_SZ; i++) {
+                arr[i] = rand() % CAP + 1;
+        }
         prob_set_t ps = {.item_sizes = arr,
                          .num_items = ARR_SZ,
                          .bin_capacity = CAP,
@@ -27,5 +29,6 @@ int main(void) {
                          .fitness_k = FIT_K,
                          .use_adaptive_mutation = false};
         result_free(bin_packing(&ps));
+        free(arr);
         return 0;
 }

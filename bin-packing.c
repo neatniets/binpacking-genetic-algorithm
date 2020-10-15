@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <math.h>
 
 #if defined (DEBUG_BIN)
 static void print_bin(const bin_t *bin) {
@@ -107,9 +108,22 @@ static pop_t *child_pop(const tourn_t *mating_pool, size_t population_size,
 }
 static void mutate_pop(pop_t *pop, double mutation_rate,
                        const long long *item_sizes, size_t num_items) {
-        for (size_t i=0; i<pop->num_chroms; i++) {
+        /* starts at 1 because 0 contains the elite chromosome from
+         * previous generations */
+        for (size_t i=1; i<pop->num_chroms; i++) {
+#ifdef SWAP_MUT
+                if (rand() * (1 / RAND_MAX) > mutation_rate) {
+                        continue;
+                }
+                size_t i1 = rand() % pop->chroms[i]->num_bins;
+                size_t i2 = rand() % pop->chroms[i]->num_bins;
+                bin_t *tmp = pop->chroms[i]->bins[i1];
+                pop->chroms[i]->bins[i1] = pop->chroms[i]->bins[i2];
+                pop->chroms[i]->bins[i2] = tmp;
+#else
                 chrom_mutate(pop->chroms[i], mutation_rate,
                              item_sizes, num_items);
+#endif
         }
 }
 static inline void print_stats(size_t gen_num, const chrom_t *best_chrom) {
@@ -140,7 +154,10 @@ result_t *bin_packing(const prob_set_t *ps) {
         const chrom_t *best = find_elite(pop);
         print_stats(1, best);
         for (size_t gen=1; gen<ps->max_generations; gen++) {
-                if (best->fitness >= 1.0) {
+#ifdef DEBUG_MUT_RATE
+                printf("mutation rate: %lf\n", mutation_rate);
+#endif
+                if (best->fitness >= nextafter(1.0, 0.0)) {
                         break;
                 }
                 tourn_t *t = tournament_select(pop, ps->mating_pool_size,
@@ -157,9 +174,9 @@ result_t *bin_packing(const prob_set_t *ps) {
                 print_chrom(new_best);
 #endif
                 if (ps->use_adaptive_mutation) {
-                        double percent_change = 1 - ((best->fitness
-                                                      - new_best->fitness)
-                                                     / best->fitness);
+                        double percent_change = 1 - ((new_best->fitness
+                                                      - best->fitness)
+                                                     / new_best->fitness);
                         mutation_rate = ps->max_mutation_rate
                                         * percent_change;
                 }
