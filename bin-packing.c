@@ -179,7 +179,8 @@ result_t *bin_packing(const prob_set_t *ps) {
                         } else {
                                 mutation_rate += (ps->max_mutation_rate
                                                   - mutation_rate)
-                                                 * ps->max_mutation_rate;
+                                                 * (1
+                                                    - ps->max_mutation_rate);
                         }
                 }
                 pop_free(pop);
