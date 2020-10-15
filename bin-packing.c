@@ -174,11 +174,13 @@ result_t *bin_packing(const prob_set_t *ps) {
                 print_chrom(new_best);
 #endif
                 if (ps->use_adaptive_mutation) {
-                        double percent_change = 1 - ((new_best->fitness
-                                                      - best->fitness)
-                                                     / new_best->fitness);
-                        mutation_rate = ps->max_mutation_rate
-                                        * percent_change;
+                        if (best->fitness != new_best->fitness) {
+                                mutation_rate = 0.0;
+                        } else {
+                                mutation_rate += (ps->max_mutation_rate
+                                                  - mutation_rate)
+                                                 * ps->max_mutation_rate;
+                        }
                 }
                 pop_free(pop);
                 pop = child;
