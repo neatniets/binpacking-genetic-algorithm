@@ -140,6 +140,18 @@ void chrom_free(chrom_t *chrom) {
         free(chrom);
 }
 
+chrom_t *chrom_copy(const chrom_t *chrom) {
+        chrom_t *copy = chrom_alloc(chrom->bin_cap);
+        *copy = (chrom_t){.fitness = chrom->fitness,
+                          .num_bins = chrom->num_bins,
+                          .bins = malloc(chrom->num_bins
+                                         * sizeof(*copy->bins))};
+        for (size_t i=0; i<copy->num_bins; i++) {
+                copy->bins[i] = bin_copy(chrom->bins[i]);
+        }
+        return copy;
+}
+
 /** Returns true if used items conflict with items in bin */
 static bool check4conflict(const bool *is_item_used, const bin_t *bin) {
         for (size_t i=0; i<bin->count; i++) {

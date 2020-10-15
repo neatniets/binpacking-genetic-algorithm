@@ -40,12 +40,19 @@ int main(void) {
         printf("mutated chrom:\n");
         print_chrom(child, arr, ARR_SZ);
         putchar('\n');
+        printf("copy chrom\n");
+        chrom_t *copy = chrom_copy(child);
         printf("free chrom 1\n");
         chrom_free(chrom);
         printf("free chrom 2\n");
         chrom_free(chrom2);
         printf("free child chrom\n");
         chrom_free(child);
+        printf("copied chrom:\n");
+        print_chrom(copy, arr, ARR_SZ);
+        putchar('\n');
+        printf("free copy\n");
+        chrom_free(copy);
         free(arr);
         return 0;
 }
@@ -65,7 +72,7 @@ static void print_bin(const bin_t *bin,
 static void print_chrom(const chrom_t *chrom,
                         const long long *item_sizes, size_t num_items) {
         printf("fitness: %lf\n"
-               "bin_cap: %lld\n"
+               "bin_cap: %zu\n"
                "num_bins: %zu\n"
                "bins:\n",
                chrom->fitness, chrom->bin_cap, chrom->num_bins);
