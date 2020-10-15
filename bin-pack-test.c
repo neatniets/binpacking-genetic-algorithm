@@ -4,10 +4,10 @@
 
 #define ARR_SZ          1000
 #define CAP             1000
-#define MAX_GEN         1000
+#define MAX_GEN         100
 #define POP_SZ          100
 #define MP_SZ           POP_SZ
-#define MUT_RT          0.0
+#define MUT_RT          0.05
 #define TOURN_P         1.0
 #define TOURN_SZ        2
 #define FIT_K           2
@@ -27,7 +27,7 @@ int main(void) {
                          .tournament_p = TOURN_P,
                          .tournament_size = TOURN_SZ,
                          .fitness_k = FIT_K,
-                         .use_adaptive_mutation = false};
+                         .use_adaptive_mutation = true};
         result_free(bin_packing(&ps));
         free(arr);
         return 0;
