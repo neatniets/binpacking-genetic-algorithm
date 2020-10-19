@@ -29,17 +29,19 @@ static void falk_main_solve(void) {
         prob_set_t ps = {.item_sizes = item_sizes,
                          .num_items = num_items,
                          .bin_capacity = bin_capacity,
-                         .max_generations = 1000,
+                         .max_generations = 1000000,
+                         .terminal_num_bins = optimal_num_bins,
+                         .max_secs = 1,
                          .population_size = POP_SZ,
                          .mating_pool_size = POP_SZ,
                          .max_mutation_rate = 0.1,
                          .tournament_p = 1.0,
                          .tournament_size = 2,
-                         .fitness_k = 2,
-                         .use_adaptive_mutation = false};
+                         .use_inversion_operator = true};
         printf("OPTIMAL NUMBER OF BINS: %zu\n", optimal_num_bins);
         for (size_t i=0; i<NUM_PASSES; i++) {
                 printf("PASS #%zu:\n", i);
+                fprintf(stderr, "PASS #%zu:\n", i);
                 result_free(bin_packing(&ps));
         }
         free(item_sizes);
@@ -49,6 +51,7 @@ static void falk_main(void) {
         scanf(" %zu", &num_problems);
         for (size_t i=0; i<num_problems; i++) {
                 printf("PROBLEM #%zu:\n", i);
+                fprintf(stderr, "PROBLEM #%zu:\n", i);
                 falk_main_solve();
         }
 }

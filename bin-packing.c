@@ -4,6 +4,10 @@
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
+
+#define CLOCK2SEC(START, END) \
+        (((double)END - START) * ((double)1.0 / CLOCKS_PER_SEC))
 
 #if defined (DEBUG_BIN)
 static void print_bin(const bin_t *bin) {
@@ -111,24 +115,32 @@ static void mutate_pop(pop_t *pop, double mutation_rate,
         /* starts at 1 because 0 contains the elite chromosome from
          * previous generations */
         for (size_t i=1; i<pop->num_chroms; i++) {
-#ifdef SWAP_MUT
-                if (rand() * (1 / RAND_MAX) > mutation_rate) {
-                        continue;
-                }
-                size_t i1 = rand() % pop->chroms[i]->num_bins;
-                size_t i2 = rand() % pop->chroms[i]->num_bins;
-                bin_t *tmp = pop->chroms[i]->bins[i1];
-                pop->chroms[i]->bins[i1] = pop->chroms[i]->bins[i2];
-                pop->chroms[i]->bins[i2] = tmp;
-#else
                 chrom_mutate(pop->chroms[i], mutation_rate,
                              item_sizes, num_items);
-#endif
         }
 }
-static inline void print_stats(size_t gen_num, const chrom_t *best_chrom) {
-        printf("%zu\t %zu\t %lf\n",
-               gen_num, best_chrom->num_bins, best_chrom->fitness);
+static inline void print_stats(size_t gen_num, const chrom_t *best_chrom,
+                               double secs) {
+        printf("%zu\t %zu\t %lf\t %lf\n",
+               gen_num, best_chrom->num_bins, best_chrom->fitness, secs);
+}
+static int bin_cmp(const void *a, const void *b) {
+        const bin_t *av = *(bin_t **)a;
+        const bin_t *bv = *(bin_t **)b;
+        if (av->fill < bv->fill) {
+                return -1;
+        } else if (av->fill > bv->fill) {
+                return 1;
+        } else {
+                return 0;
+        }
+}
+static void inversion(pop_t *pop) {
+        /* start at 1 because 0 is the elite chromosome */
+        for (size_t i=1; i<pop->num_chroms; i++) {
+                qsort(pop->chroms[i]->bins, pop->chroms[i]->num_bins,
+                      sizeof(*pop->chroms[i]->bins), bin_cmp);
+        }
 }
 
 result_t *bin_packing(const prob_set_t *ps) {
@@ -147,17 +159,17 @@ result_t *bin_packing(const prob_set_t *ps) {
         assert((ps->tournament_p >= 0.0) && (ps->tournament_p <= 1.0));
         assert(ps->tournament_size > 0);
 
-        double mutation_rate = ps->max_mutation_rate;
-        printf("gen #\t # bins\t fitness\n");
+        clock_t start = clock();
+        printf("gen #\t # bins\t fitness\t cum. sec\n");
         pop_t *pop = pop_rand_init(ps->bin_capacity, ps->population_size,
                                    ps->item_sizes, ps->num_items);
         const chrom_t *best = find_elite(pop);
-        print_stats(1, best);
+        clock_t end = clock();
+        print_stats(1, best, CLOCK2SEC(start, end));
         for (size_t gen=1; gen<ps->max_generations; gen++) {
-#ifdef DEBUG_MUT_RATE
-                printf("mutation rate: %lf\n", mutation_rate);
-#endif
-                if (best->fitness >= nextafter(1.0, 0.0)) {
+                if ((best->fitness >= nextafter(1.0, 0.0))
+                    || (best->num_bins <= ps->terminal_num_bins)
+                    || (CLOCK2SEC(start, end) >= ps->max_secs)) {
                         break;
                 }
                 tourn_t *t = tournament_select(pop, ps->mating_pool_size,
@@ -166,23 +178,17 @@ result_t *bin_packing(const prob_set_t *ps) {
                 pop_t *child = child_pop(t, ps->population_size, best,
                                          ps->item_sizes, ps->num_items);
                 tourn_free(t);
-                mutate_pop(child, mutation_rate,
+                if (ps->use_inversion_operator) {
+                        inversion(child);
+                }
+                mutate_pop(child, ps->max_mutation_rate,
                            ps->item_sizes, ps->num_items);
                 const chrom_t *new_best = find_elite(child);
-                print_stats(gen + 1, new_best);
+                end = clock();
+                print_stats(gen + 1, new_best, CLOCK2SEC(start, end));
 #ifdef DEBUG_BIN
                 print_chrom(new_best);
 #endif
-                if (ps->use_adaptive_mutation) {
-                        if (best->fitness != new_best->fitness) {
-                                mutation_rate = 0.0;
-                        } else {
-                                mutation_rate += (ps->max_mutation_rate
-                                                  - mutation_rate)
-                                                 * (1
-                                                    - ps->max_mutation_rate);
-                        }
-                }
                 pop_free(pop);
                 pop = child;
                 best = new_best;

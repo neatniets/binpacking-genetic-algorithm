@@ -10,13 +10,14 @@ struct problem_set {
         size_t num_items;
         size_t bin_capacity;
         size_t max_generations;
+        size_t terminal_num_bins;
+        double max_secs;
         size_t population_size;
         size_t mating_pool_size;
         double max_mutation_rate;
         double tournament_p;
         unsigned tournament_size;
-        unsigned fitness_k;
-        bool use_adaptive_mutation;
+        bool use_inversion_operator;
 };
 
 struct llarray {
